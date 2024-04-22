@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -36,7 +37,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authManager(UserDetailsService userDetailsService) {
+    public AuthenticationManager authManager(
+            @Qualifier("authenticationService") UserDetailsService userDetailsService) {
         var authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(new BCryptPasswordEncoder());
@@ -49,18 +51,17 @@ public class SecurityConfig {
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(x -> x.disable())
-                .authorizeHttpRequests( auth -> auth
-                        .requestMatchers(
-                                HttpMethod.POST,"/register", "/signin").permitAll()
-                        .requestMatchers(
-                                HttpMethod.GET,"/").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/signup", "/signin").permitAll() // Allow /signup
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults()))
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();
     }
+
 
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
@@ -75,5 +76,4 @@ public class SecurityConfig {
     JwtDecoder jwtDecoder() throws JOSEException {
         return NimbusJwtDecoder.withPublicKey(rsaKey.toRSAPublicKey()).build();
     }
-
 }

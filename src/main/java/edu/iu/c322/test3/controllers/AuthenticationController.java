@@ -2,7 +2,7 @@ package edu.iu.c322.test3.controllers;
 
 import edu.iu.c322.test3.repository.CustomerRepository;
 import edu.iu.c322.test3.model.Customer;
-import edu.iu.c322.test3.security.TokenService;
+import edu.iu.c322.test3.service.TokenService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,7 +32,7 @@ public class AuthenticationController {
     }
     @PostMapping("/login")
     public String login(@RequestBody Customer customer) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(customer.username(), customer.password()));
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(customer.getUsername(), customer.getPassword()));
         return tokenService.generateToken(authentication);
     }
 }
